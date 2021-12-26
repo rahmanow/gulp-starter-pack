@@ -1,6 +1,11 @@
-# Gulp with TailwindCSS Starter Kit
+# Gulp Starter Kit
 
-Gulp with TailwindCSS Starter Kit ( Updated with [TailwindCSS JIT](https://github.com/tailwindlabs/tailwindcss-jit) )- A repo which makes your development easier with predefined gulp tasks that help you to use [tailwindcss](https://github.com/tailwindcss/tailwindcss) with simple npm commands 
+Gulp Starter Kit 
+
+Added: 
+- Tailwind CSS ( Updated with [TailwindCSS JIT](https://github.com/tailwindlabs/tailwindcss-jit) )
+- A repo for easier development with predefined gulp tasks.
+
 
 ## Usage
 
@@ -10,12 +15,21 @@ npm install // or yarn install
 ```
 2. To start development and server for live preview
 ```sh
-npm run dev // or yarn dev
+gulp
 ```
 3. To generate minifed files for production server
 ```sh
-npm run prod // or yarn prod
+gulp prod
 ```
+4. To deploy surge.sh
+```sh
+gulp deploy
+```
+5. To use 3in1 git (add, commit, push)
+```sh
+gulp gitter
+```
+
 
 # Configuration
 
@@ -25,8 +39,17 @@ To change the path of files and destination/build folder, edit options in **conf
 {
   config: {
       ...
+      tailwindjs: "./tailwind.config.js",
       port: 9050 // browser preview port
   },
+  
+  deploy: {
+    gitURL: 'https://github.com/rahmanow/gulp-starter-pack.git',
+    gitBranch: 'master',
+    gitCommitMessage: '-Auto commit by Gulp',
+    surgeUrl: 'same-uncle.surge.sh'
+  },
+  
   paths: {
      root: "./",
      src: {

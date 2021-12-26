@@ -1,7 +1,13 @@
 module.exports = {
 	config: {
 		tailwindjs: "./tailwind.config.js",
-		port: 9050
+		port: 9050,
+	},
+	deploy: {
+		gitURL: 'https://github.com/rahmanow/gulp-starter-pack.git',
+		gitBranch: 'master',
+		gitCommitMessage: '-Auto commit by Gulp',
+		surgeUrl: 'same-uncle.surge.sh'
 	},
 	paths: {
 		root: "./",

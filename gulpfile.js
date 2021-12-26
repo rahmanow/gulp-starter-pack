@@ -37,6 +37,7 @@ const fileInclude = require('gulp-file-include'); // Include header and footer f
 const surge = require('gulp-surge'); // Surge deployment
 const git = require('gulp-git'); // Execute command line shell for git push
 const babel = require('gulp-babel');
+const open = require('gulp-open'); // Opens a URL in a web browser
 
 //Load Previews on Browser on dev
 function livePreview(done){
@@ -168,11 +169,11 @@ async function gitAdd() {
 
 async function gitCommit() {
   return src(`${options.paths.root}`)
-      .pipe(git.commit('-Auto commit by Gulp', {args:'-m'}))
+      .pipe(git.commit(`${options.deploy.gitCommitMessage}`, {args:'-m'}))
 }
 
 async function gitPush() {
-  git.push('https://github.com/rahmanow/gulp-starter-pack.git', 'master', function (err) {
+  git.push(`${options.deploy.gitURL}`, `${options.deploy.gitBranch}`, function (err) {
     if (err) throw err;
   });
 }
@@ -180,12 +181,21 @@ async function gitPush() {
 async function surgeDeploy() {
   return surge({
     project: `${options.paths.dist.base}`, // Path to your static build directory
-    domain: 'same-uncle.surge.sh'  // Your domain or Surge subdomain
-  })
+    domain: `${options.deploy.surgeUrl}`  // Your domain or Surge subdomain
+  });
+}
+
+function openBrowser(done) {
+  const opt = {
+    uri: `https://${options.deploy.surgeUrl}`
+  };
+  return src('./')
+      .pipe(open(opt));
+  done();
 }
 
 // Deploy command - gulp deploy
-exports.deploy = series(surgeDeploy); // Deploy your static website to surge.sh
+exports.deploy = series(surgeDeploy, openBrowser); // Deploy your static website to surge.sh
 
 // Gitter command - gulp gitter
 exports.gitter = series(gitAdd, gitCommit, gitPush); // 3 in 1 - add, commit and push.
