@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../charwa/.idea/CHARWA.iml" filepath="$PROJECT_DIR$/../charwa/.idea/CHARWA.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/Starter-Template.iml" filepath="$PROJECT_DIR$/.idea/Starter-Template.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../blog.rahmanow.com/content/themes/azr/.idea/azr.iml" filepath="$PROJECT_DIR$/../blog.rahmanow.com/content/themes/azr/.idea/azr.iml" />
     </modules>
   </component>
 </project>

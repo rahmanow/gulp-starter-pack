@@ -15,13 +15,11 @@
 
 */
 
-const { src, dest, task, watch, series, parallel } = require('gulp');
+const { src, dest, watch, series, parallel } = require('gulp');
 const del = require('del'); //For Cleaning build/dist for fresh export
 const options = require("./config"); //paths and other options from config.js
 const browserSync = require('browser-sync').create();
-
-const sass = require('gulp-sass');
-sass.compiler = require('sass');//For Compiling SASS files
+const sass = require('gulp-sass')(require('sass'));//For Compiling SASS files
 const postcss = require('gulp-postcss'); //For Compiling tailwind utilities with tailwind config
 const concat = require('gulp-concat'); //For Concatinating js,scss, css files
 const uglify = require('gulp-terser');//To Minify JS files
@@ -30,79 +28,73 @@ const cleanCSS = require('gulp-clean-css');//To Minify CSS files
 const purgecss = require('gulp-purgecss');// Remove Unused CSS from Styles
 
 //Note : Webp still not supported in major browsers including firefox
-//const webp = require('gulp-webp'); //For converting images to WebP format
-//const replace = require('gulp-replace'); //For Replacing img formats to webp in html
+// const webp = require('gulp-webp'); //For converting images to WebP format
+// const replace = require('gulp-replace'); //For Replacing img formats to webp in html
 const logSymbols = require('log-symbols'); //For Symbolic Console logs :) :P
 const fileInclude = require('gulp-file-include'); // Include header and footer files to work faster :)
 const surge = require('gulp-surge'); // Surge deployment
 const git = require('gulp-git'); // Execute command line shell for git push
 const babel = require('gulp-babel');
 const open = require('gulp-open'); // Opens a URL in a web browser
+const tailwindcss = require('tailwindcss');
 
 //Load Previews on Browser on dev
-function livePreview(done){
-  browserSync.init({
-    server: {
-      baseDir: options.paths.dist.base
-    },
-    port: options.config.port || 5000
-  });
-  done();
-} 
+const livePreview = (done) =>
+  {
+    browserSync.init({ server: { baseDir: options.paths.dist.base }, port: options.config.port || 5000 });
+    done();
+  }
 
 // Triggers Browser reload
-function previewReload(done){
-  console.log("\n\t" + logSymbols.info,"Reloading Browser Preview.\n");
-  browserSync.reload();
-  done();
-}
+const previewReload = (done) =>
+  {
+    console.log("\n\t" + logSymbols.info,"Reloading Browser Preview.\n");
+    browserSync.reload();
+    done();
+  }
 
 //Development Tasks
-async function devHTML(){
-  return src([
-    `${options.paths.src.base}/**/*.html`,
-    `!${options.paths.src.base}/**/header.html`, // ignore
-    `!${options.paths.src.base}/**/footer.html` // ignore
-  ])
-      .pipe(fileInclude({
-        prefix: '@@',
-        basepath: '@file'
-      }))
-      .pipe(dest(options.paths.dist.base));
-}
+const devHTML = async () =>
+  {
+    src([`${options.paths.src.base}/**/*.html`,
+        `!${options.paths.src.base}/**/header.html`, // ignore
+        `!${options.paths.src.base}/**/footer.html` // ignore
+        ])
+    .pipe(fileInclude({ prefix: '@@', basepath: '@file'}))
+    .pipe(dest(options.paths.dist.base));
+  }
 
-function devStyles(){
-  const tailwindcss = require('tailwindcss'); 
-  return src(`${options.paths.src.scss}/**/*.scss`).pipe(sass().on('error', sass.logError))
+const devStyles = async () =>
+  {
+    src(`${options.paths.src.scss}/**/*.scss`)
+    .pipe(sass().on('error', sass.logError))
     .pipe(dest(options.paths.src.scss))
     .pipe(postcss([
-      tailwindcss(options.config.tailwindjs),
-      require('autoprefixer'),
-    ]))
+          tailwindcss(options.config.tailwindjs),
+          require('autoprefixer'),
+          ]))
     .pipe(concat({ path: 'style.css'}))
     .pipe(dest(options.paths.dist.css));
-}
+  }
 
-function devScripts(){
-  return src([
-    `${options.paths.src.js}/libs/**/*.js`,
-    `${options.paths.src.js}/*.js`,
-    `!${options.paths.src.js}/**/external/*`
-  ])
-      .pipe(babel({
-        ignore: [
-          `${options.paths.src.js}/libs/**/*.js`
-        ]
-      }))
-      .pipe(concat({ path: 'scripts.js'}))
-      .pipe(uglify())
-      .pipe(dest(options.paths.dist.js));
-}
+const devScripts = async () =>
+  {
+    src([
+        `${options.paths.src.js}/libs/**/*.js`,
+        `${options.paths.src.js}/*.js`,
+        `!${options.paths.src.js}/**/external/*`
+    ])
+    .pipe(babel({ignore: [`${options.paths.src.js}/libs/**/*.js`] }))
+    .pipe(concat({ path: 'scripts.js'}))
+    .pipe(uglify())
+    .pipe(dest(options.paths.dist.js));
+  }
 
-function devImages(){
-  return src(`${options.paths.src.img}/**/*`)
-      .pipe(dest(options.paths.dist.img));
-}
+const devImages = async () =>
+  {
+    src(`${options.paths.src.img}/**/*`)
+    .pipe(dest(options.paths.dist.img));
+  }
 
 function watchFiles(){
   watch(`${options.paths.src.base}/**/*.html`,series(devHTML, devStyles, previewReload));
@@ -120,19 +112,20 @@ function devClean(){
 //Production Tasks (Optimized Build for Live/Production Sites)
 function prodHTML(){
   return src(`${options.paths.src.base}/**/*.html`)
-      .pipe(dest(options.paths.build.base));
+  .pipe(dest(options.paths.build.base));
 }
 
 function prodStyles(){
   return src(`${options.paths.dist.css}/**/*`)
-  .pipe(purgecss({
-    content: ['src/**/*.{html,js}'],
-    defaultExtractor: content => {
-      const broadMatches = content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || []
-      const innerMatches = content.match(/[^<>"'`\s.()]*[^<>"'`\s.():]/g) || []
-      return broadMatches.concat(innerMatches)
-    }
-  }))
+  .pipe(purgecss(
+      {
+        content: ['src/**/*.{html,js}'],
+        defaultExtractor: content => {
+          const broadMatches = content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || []
+          const innerMatches = content.match(/[^<>"'`\s.()]*[^<>"'`\s.():]/g) || []
+          return broadMatches.concat(innerMatches)
+        }
+      }))
   .pipe(cleanCSS({compatibility: 'ie8'}))
   .pipe(dest(options.paths.build.css));
 }
@@ -148,7 +141,9 @@ function prodScripts(){
 }
 
 function prodImages(){
-  return src(options.paths.src.img + '/**/*').pipe(imagemin()).pipe(dest(options.paths.build.img));
+  return src(options.paths.src.img + '/**/*')
+  .pipe(imagemin())
+  .pipe(dest(options.paths.build.img));
 }
 
 function prodClean(){
@@ -164,34 +159,34 @@ function buildFinish(done){
 
 async function gitAdd() {
   return src(`${options.paths.root}`)
-      .pipe(git.add())
+  .pipe(git.add())
 }
 
 async function gitCommit() {
   return src(`${options.paths.root}`)
-      .pipe(git.commit(`${options.deploy.gitCommitMessage}`, {args:'-m'}))
+  .pipe(git.commit(`${options.deploy.gitCommitMessage}`, {args:'-m'}))
 }
 
 async function gitPush() {
-  git.push(`${options.deploy.gitURL}`, `${options.deploy.gitBranch}`, function (err) {
-    if (err) throw err;
-  });
+  git.push(`${options.deploy.gitURL}`, `${options.deploy.gitBranch}`, errorFunction);
 }
 
 async function surgeDeploy() {
   return surge({
-    project: `${options.paths.dist.base}`, // Path to your static build directory
-    domain: `${options.deploy.surgeUrl}`  // Your domain or Surge subdomain
+  project: `${options.paths.dist.base}`, // Path to your static build directory
+  domain: `${options.deploy.surgeUrl}`  // Your domain or Surge subdomain
   });
 }
 
 function openBrowser(done) {
-  const opt = {
-    uri: `https://${options.deploy.surgeUrl}`
-  };
+  const opt = {uri: `https://${options.deploy.surgeUrl}`};
   return src('./')
-      .pipe(open(opt));
+  .pipe(open(opt));
   done();
+}
+
+const errorFunction = (err) => {
+  if (err) throw err;
 }
 
 // Deploy command - gulp deploy
