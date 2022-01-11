@@ -7,6 +7,7 @@ module.exports = {
 		gitURL: 'https://github.com/rahmanow/gulp-starter-pack.git',
 		gitBranch: 'master',
 		gitCommitMessage: '-Auto commit by Gulp',
+		gitCommitArgs: '-m',
 		surgeUrl: 'same-uncle.surge.sh'
 	},
 	paths: {
