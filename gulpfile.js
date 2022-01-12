@@ -32,11 +32,12 @@ const purgecss = require('gulp-purgecss');// Remove Unused CSS from Styles
 // const replace = require('gulp-replace'); //For Replacing img formats to webp in html
 const logSymbols = require('log-symbols'); //For Symbolic Console logs :) :P
 const fileInclude = require('gulp-file-include'); // Include header and footer files to work faster :)
-const surge = require('gulp-surge'); // Surge deployment
+const superchild = require('superchild');
 const git = require('gulp-git'); // Execute command line shell for git push
 const babel = require('gulp-babel');
 const open = require('gulp-open'); // Opens a URL in a web browser
 const tailwindcss = require('tailwindcss');
+//const {openBrowser} = require("browser-sync/dist/utils");
 
 //Load Previews on Browser on dev
 const livePreview = (done) =>
@@ -171,21 +172,20 @@ async function gitPush() {
   git.push(`${options.deploy.gitURL}`, `${options.deploy.gitBranch}`, errorFunction);
 }
 
-async function surgeDeploy() {
-  return surge({
-  project: `${options.paths.dist.base}`, // Path to your static build directory
-  domain: `${options.deploy.surgeUrl}`  // Your domain or Surge subdomain
+surgeDeploy = async () => {
+  const child = superchild(`surge ${options.paths.dist.base} ${options.deploy.surgeUrl}`);
+  child.on('stdout_line', (line) => {
+      console.log(line)
   });
 }
 
-function openBrowser(done) {
+openBrowser = async () => {
   const opt = {uri: `https://${options.deploy.surgeUrl}`};
-  return src('./')
-  .pipe(open(opt));
-  done();
+  return src('./dist')
+      .pipe(open(opt));
 }
 
-const errorFunction = (err) => {
+errorFunction = (err) => {
   if (err) throw err;
 }
 

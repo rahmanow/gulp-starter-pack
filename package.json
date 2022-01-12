@@ -10,6 +10,7 @@
     "gulp-open": "^3.0.1",
     "gulp-surge": "^0.1.4",
     "postcss": "^8.2.9",
+    "superchild": "^0.1.10",
     "tailwindcss": "^2.1.1"
   },
   "devDependencies": {
