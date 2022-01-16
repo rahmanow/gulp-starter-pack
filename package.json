@@ -3,10 +3,28 @@
   "version": "1.2.0",
   "description": "Starter Pack w/ Gulp 4",
   "main": "gulpfile.js",
+  "scripts": {
+    "dev": "gulp",
+    "build": "gulp prod",
+    "prod": "gulp prod",
+    "deploy": "gulp deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rahmanow/gulp-starter-pack.git"
+  },
+  "keywords": [],
+  "author": "Azat Rahmanov",
+  "license": "ISC",
+  "bugs": {
+    "url": "#"
+  },
+  "homepage": "#",
   "dependencies": {
     "gulp-babel": "^8.0.0",
     "gulp-file-include": "^2.3.0",
     "gulp-git": "^2.10.1",
+    "gulp-if": "^3.0.0",
     "gulp-open": "^3.0.1",
     "gulp-surge": "^0.1.4",
     "postcss": "^8.2.9",
@@ -28,24 +46,8 @@
     "gulp-sass": "^5.1.0",
     "gulp-terser": "^2.0.1",
     "gulp-webp": "^4.0.1",
+    "gulp-zip": "^5.1.0",
     "log-symbols": "^4.1.0",
     "sass": "^1.45.2"
-  },
-  "scripts": {
-    "dev": "gulp",
-    "build": "gulp prod",
-    "prod": "gulp prod",
-    "deploy": "gulp deploy"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/rahmanow/gulp-starter-pack.git"
-  },
-  "keywords": [],
-  "author": "Azat Rahmanov",
-  "license": "ISC",
-  "bugs": {
-    "url": "#"
-  },
-  "homepage": "#"
+  }
 }

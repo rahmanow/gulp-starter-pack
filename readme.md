@@ -47,7 +47,7 @@ To change the path of files and destination/build folder, edit options in **conf
     gitURL: 'https://github.com/rahmanow/gulp-starter-pack.git',
     gitBranch: 'master',
     gitCommitMessage: '-Auto commit by Gulp',
-    surgeUrl: 'same-uncle.surge.sh'
+    surgeUrl: 'example-url.surge.sh'
   },
   
   paths: {

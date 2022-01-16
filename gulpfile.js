@@ -33,21 +33,22 @@ const purgecss = require('gulp-purgecss');// Remove Unused CSS from Styles
 const logSymbols = require('log-symbols'); //For Symbolic Console logs :) :P
 const fileInclude = require('gulp-file-include'); // Include header and footer files to work faster :)
 const superchild = require('superchild');
+const zip = require('gulp-zip');
 const git = require('gulp-git'); // Execute command line shell for git push
 const babel = require('gulp-babel');
 const open = require('gulp-open'); // Opens a URL in a web browser
 const tailwindcss = require('tailwindcss');
-//const {openBrowser} = require("browser-sync/dist/utils");
+const gulpif = require('gulp-if');
 
 //Load Previews on Browser on dev
-const livePreview = (done) =>
+livePreview = (done) =>
   {
     browserSync.init({ server: { baseDir: options.paths.dist.base }, port: options.config.port || 5000 });
     done();
   }
 
 // Triggers Browser reload
-const previewReload = (done) =>
+previewReload = (done) =>
   {
     console.log("\n\t" + logSymbols.info,"Reloading Browser Preview.\n");
     browserSync.reload();
@@ -55,7 +56,7 @@ const previewReload = (done) =>
   }
 
 //Development Tasks
-const devHTML = async () =>
+devHTML = async () =>
   {
     src([`${options.paths.src.base}/**/*.html`,
         `!${options.paths.src.base}/**/header.html`, // ignore
@@ -65,20 +66,20 @@ const devHTML = async () =>
     .pipe(dest(options.paths.dist.base));
   }
 
-const devStyles = async () =>
+devStyles = async () =>
   {
-    src(`${options.paths.src.scss}/**/*.scss`)
+    src([`${options.paths.src.scss}/**/*.scss`, `./frameworks/${options.framework.css}/*.scss`])
     .pipe(sass().on('error', sass.logError))
     .pipe(dest(options.paths.src.scss))
-    .pipe(postcss([
-          tailwindcss(options.config.tailwindjs),
-          require('autoprefixer'),
-          ]))
+    .pipe(gulpif((options.framework.css === 'tailwindcss'), postcss([
+        tailwindcss('./frameworks/tailwindcss/tailwind.config.js'),
+        require('autoprefixer'),
+    ])))
     .pipe(concat({ path: 'style.css'}))
     .pipe(dest(options.paths.dist.css));
   }
 
-const devScripts = async () =>
+devScripts = async () =>
   {
     src([
         `${options.paths.src.js}/libs/**/*.js`,
@@ -91,32 +92,33 @@ const devScripts = async () =>
     .pipe(dest(options.paths.dist.js));
   }
 
-const devImages = async () =>
+devImages = async () =>
   {
     src(`${options.paths.src.img}/**/*`)
     .pipe(dest(options.paths.dist.img));
   }
 
-function watchFiles(){
+watchFiles = () => {
   watch(`${options.paths.src.base}/**/*.html`,series(devHTML, devStyles, previewReload));
-  watch([options.config.tailwindjs, `${options.paths.src.css}/**/*.scss`],series(devStyles, previewReload));
+  watch([`./frameworks/${options.framework.css}/**/*.js`, `./frameworks/${options.framework.css}/**/*.scss`], series(devStyles, previewReload));
+  //watch([options.config.tailwindJs, `${options.paths.src.css}/**/*.scss`],series(devStyles, previewReload));
   watch(`${options.paths.src.js}/**/*.js`,series(devScripts, previewReload));
   watch(`${options.paths.src.img}/**/*`,series(devImages, previewReload));
   console.log("\n\t" + logSymbols.info,"Watching for Changes..\n");
 }
 
-function devClean(){
+devClean = () => {
   console.log("\n\t" + logSymbols.info,"Cleaning dist folder for fresh start.\n");
   return del([options.paths.dist.base]);
 }
 
 //Production Tasks (Optimized Build for Live/Production Sites)
-function prodHTML(){
+prodHTML = () => {
   return src(`${options.paths.src.base}/**/*.html`)
   .pipe(dest(options.paths.build.base));
 }
 
-function prodStyles(){
+prodStyles = () => {
   return src(`${options.paths.dist.css}/**/*`)
   .pipe(purgecss(
       {
@@ -131,7 +133,7 @@ function prodStyles(){
   .pipe(dest(options.paths.build.css));
 }
 
-function prodScripts(){
+prodScripts = () => {
   return src([
     `${options.paths.src.js}/libs/**/*.js`,
     `${options.paths.src.js}/**/*.js`
@@ -141,34 +143,37 @@ function prodScripts(){
   .pipe(dest(options.paths.build.js));
 }
 
-function prodImages(){
+prodImages = () => {
   return src(options.paths.src.img + '/**/*')
   .pipe(imagemin())
   .pipe(dest(options.paths.build.img));
 }
 
-function prodClean(){
+prodClean = () => {
   console.log("\n\t" + logSymbols.info,"Cleaning build folder for fresh start.\n");
   return del([options.paths.build.base]);
 }
 
-function buildFinish(done){
-  console.log("\n\t" + logSymbols.info,`Production build is complete. Files are located at ${options.paths.build.base}\n`);
+buildFinish = (done) => {
+    console.log("\n\t" + logSymbols.info,`Production build is complete. Files are located at ${options.paths.build.base}\n`);
+    return src(`${options.paths.build.base}/*`)
+        .pipe(zip('build.zip'))
+        .pipe(dest(`${options.paths.build.base}`));
   done();
 }
 
 
-async function gitAdd() {
+gitAdd = async () => {
   return src(`${options.paths.root}`)
   .pipe(git.add())
 }
 
-async function gitCommit() {
+gitCommit = async () => {
   return src(`${options.paths.root}`)
   .pipe(git.commit(`${options.deploy.gitCommitMessage}`, {args:'-m'}))
 }
 
-async function gitPush() {
+gitPush = async () => {
   git.push(`${options.deploy.gitURL}`, `${options.deploy.gitBranch}`, errorFunction);
 }
 
