@@ -15,11 +15,13 @@ module.exports = {
 	tailwind: './src/scss/tailwindcss/*.scss',
 	tailConfig: './src/scss/tailwindcss/tailwind.config.js',
 
+	bootstrap: '',
+
 	git: {
 		url: 'https://github.com/rahmanow/gulp-starter-pack.git',
 		branch: 'master',
 		m: '-Auto commit by Gulp',
 		args: '-m',
 	},
-	surgeUrl: ''
+	surgeUrl: 'quirky-desire.surge.sh'
 }
