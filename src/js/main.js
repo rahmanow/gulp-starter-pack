@@ -1,1 +1,3 @@
-//main.js file
+const name = (param) => {
+
+}

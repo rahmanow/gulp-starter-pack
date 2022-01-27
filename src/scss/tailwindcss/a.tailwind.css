@@ -5,7 +5,3 @@
 body {
   @apply bg-gray-200;
 }
-
-header {
-  @apply p-20 bg-blend-color bg-green-400 text-center;
-}

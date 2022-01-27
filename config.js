@@ -1,37 +1,25 @@
 module.exports = {
-	deploy: {
-		gitURL: 'https://github.com/rahmanow/gulp-starter-pack.git',
-		gitBranch: 'master',
-		gitCommitMessage: '-Auto commit by Gulp',
-		gitCommitArgs: '-m',
-		surgeUrl: ''
+	port: 9050,
+
+	root: './',
+	src: './src',
+	dist: './dist',
+	build: './build',
+
+	scss: './src/scss/*.scss',
+	js: './src/js/*.js',
+	jsLibs: './src/js/libs/**/*',
+	img: './src/img/**/*',
+	html: './src/**/*.html',
+
+	tailwind: './src/scss/tailwindcss/*.scss',
+	tailConfig: './src/scss/tailwindcss/tailwind.config.js',
+
+	git: {
+		url: 'https://github.com/rahmanow/gulp-starter-pack.git',
+		branch: 'master',
+		m: '-Auto commit by Gulp',
+		args: '-m',
 	},
-	framework : {
-		css : 'tailwindcss', 		// tailwindcss, bootstrap
-		js: ''						// coming soon
-	},
-	paths: {
-		root: "./",
-		src: {
-			base: "./src",
-			scss: "./src/scss",
-			js: "./src/js",
-			img: "./src/img"
-		},
-		dist: {
-			base: "./dist",
-			css: "./dist/css",
-			js: "./dist/js",
-			img: "./dist/img"
-		},
-		build: {
-			base: "./build",
-			css: "./build/css",
-			js: "./build/js",
-			img: "./build/img"
-		}
-	},
-	config: {
-		port: 9050,
-	}
+	surgeUrl: ''
 }
