@@ -13,7 +13,7 @@ body:
     attributes:
       label: What happened?
       description: What did you expect, and what did you get instead?
-      placeholder: "`npm run build` finished but build/css/style.css was empty."
+      placeholder: "`npm run build` finished but dist/css/style.css was empty."
     validations:
       required: true
 

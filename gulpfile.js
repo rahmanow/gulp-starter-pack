@@ -2,8 +2,8 @@
  * Gulp Starter Pack — build pipeline
  *
  * Tasks:
- *   gulp            Clean, build to dist/, serve with live reload
- *   gulp build      Optimized production build into build/
+ *   gulp            Clean, build to .tmp/, serve with live reload
+ *   gulp build      Optimized production build into dist/
  *   gulp clean      Remove all generated output
  *   gulp zip        Archive the production build into release/
  *   gulp surge      Deploy the production build to surge.sh
@@ -42,7 +42,7 @@ let isProduction = false;
 const log = (message) => console.log(`\x1b[36m[starter]\x1b[0m ${message}`);
 
 /** Output directory for the current mode. */
-const outDir = () => (isProduction ? config.build : config.dist);
+const outDir = () => (isProduction ? config.dist : config.dev);
 
 /**
  * Re-encode raster images with sharp.
@@ -145,15 +145,15 @@ export const images = () => {
 
 export const clean = async () => {
   await Promise.all(
-    [config.dist, config.build, config.release].map((dir) =>
+    [config.dev, config.dist, config.release].map((dir) =>
       rm(dir, { recursive: true, force: true }),
     ),
   );
-  log("removed dist/, build/ and release/");
+  log(`removed ${config.dev}/, ${config.dist}/ and ${config.release}/`);
 };
 
+const cleanDev = () => rm(config.dev, { recursive: true, force: true });
 const cleanDist = () => rm(config.dist, { recursive: true, force: true });
-const cleanBuild = () => rm(config.build, { recursive: true, force: true });
 
 const setProduction = async () => {
   isProduction = true;
@@ -166,7 +166,7 @@ const setProduction = async () => {
 const serve = (done) => {
   server.init(
     {
-      server: { baseDir: config.dist },
+      server: { baseDir: config.dev },
       port: config.port,
       open: config.open,
       notify: false,
@@ -175,7 +175,7 @@ const serve = (done) => {
     () => {
       // Browsersync falls back to the next free port if config.port is taken,
       // so report the port it actually bound rather than the requested one.
-      log(`serving ${config.dist} on http://localhost:${server.getOption("port")}`);
+      log(`serving ${config.dev} on http://localhost:${server.getOption("port")}`);
       done();
     },
   );
@@ -208,7 +208,7 @@ const watchFiles = (done) => {
 /**
  * Archive the production build.
  *
- * Writes to `release/` rather than into `build/` itself, which would otherwise
+ * Writes to `release/` rather than into `dist/` itself, which would otherwise
  * mean zipping a directory while adding a file to it.
  */
 export const archive = async () => {
@@ -218,7 +218,7 @@ export const archive = async () => {
   await mkdir(config.release, { recursive: true });
 
   return new Promise((resolve, reject) => {
-    src(`${config.build}/**/*`, { base: config.build, encoding: false, allowEmpty: true })
+    src(`${config.dist}/**/*`, { base: config.dist, encoding: false, allowEmpty: true })
       .pipe(gulpZip(filename))
       .pipe(dest(config.release))
       .on("end", () => {
@@ -229,7 +229,7 @@ export const archive = async () => {
   });
 };
 
-/** Deploy `build/` to surge.sh. Requires `surgeDomain` in config.js. */
+/** Deploy `dist/` to surge.sh. Requires `surgeDomain` in config.js. */
 const deployToSurge = async () => {
   if (!config.surgeDomain) {
     throw new Error(
@@ -238,10 +238,10 @@ const deployToSurge = async () => {
     );
   }
 
-  log(`deploying ${config.build} to ${config.surgeDomain}`);
+  log(`deploying ${config.dist} to ${config.surgeDomain}`);
 
   await new Promise((resolve, reject) => {
-    const child = spawn("npx", ["--yes", "surge", config.build, config.surgeDomain], {
+    const child = spawn("npx", ["--yes", "surge", config.dist, config.surgeDomain], {
       stdio: "inherit",
       shell: process.platform === "win32",
     });
@@ -258,12 +258,12 @@ const deployToSurge = async () => {
  * Public tasks
  * ---------------------------------------------------------------------- */
 
-/** Production build: clean, compile everything optimized, into build/. */
+/** Production build: clean, compile everything optimized, into dist/. */
 export const build = series(
   setProduction,
-  cleanBuild,
+  cleanDist,
   parallel(styles, scripts, vendorScripts, images, html),
-  async () => log(`production build ready in ${config.build}`),
+  async () => log(`production build ready in ${config.dist}`),
 );
 
 /** `gulp zip` — build, then archive the result. */
@@ -274,7 +274,7 @@ export const surge = series(build, deployToSurge);
 
 /** Default: development build + server + watchers. */
 export default series(
-  cleanDist,
+  cleanDev,
   parallel(styles, scripts, vendorScripts, images, html),
   serve,
   watchFiles,

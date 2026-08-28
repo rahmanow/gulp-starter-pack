@@ -45,7 +45,7 @@
     <h2 class="section-title">Project layout</h2>
     <p>
       Everything you edit lives in <b class="font-semibold">src/</b>. Dev output goes to
-      <b class="font-semibold">dist/</b>, production output to <b class="font-semibold">build/</b>.
+      <b class="font-semibold">.tmp/</b>, production output to <b class="font-semibold">dist/</b>.
     </p>
     <code class="code-block">
       src/<br />
@@ -69,8 +69,8 @@
       export default {<br />
       &nbsp;&nbsp;port: 9050, <em># dev server port</em><br />
       &nbsp;&nbsp;src: "./src",<br />
-      &nbsp;&nbsp;dist: "./dist", <em># development output</em><br />
-      &nbsp;&nbsp;build: "./build", <em># production output</em><br />
+      &nbsp;&nbsp;dev: "./.tmp", <em># development output</em><br />
+      &nbsp;&nbsp;dist: "./dist", <em># production output</em><br />
       &nbsp;&nbsp;surgeDomain: "" <em># set to deploy with `npm run deploy`</em><br />
       };
     </code>

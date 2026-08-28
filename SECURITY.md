@@ -19,7 +19,7 @@ You should get an initial response within a few days.
 
 This is a build toolchain, not a running service. Everything here is a
 `devDependency` — nothing in `node_modules/` ships to your users. What lands in
-`build/` is plain HTML, CSS, JavaScript and images.
+`dist/` is plain HTML, CSS, JavaScript and images.
 
 That said, a compromised build tool can compromise your output, so dependency
 updates are taken seriously and Dependabot is enabled.

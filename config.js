@@ -14,13 +14,16 @@ export default {
   /** Source folder — everything you edit. */
   src: "./src",
 
-  /** Development output. Rebuilt on every save, served by Browsersync. */
-  dist: "./dist",
+  /**
+   * Development output. Rebuilt on every save and served by Browsersync.
+   * Scratch space — hidden because you should never deploy or inspect it.
+   */
+  dev: "./.tmp",
 
   /** Production output. Minified, optimized, ready to deploy. */
-  build: "./build",
+  dist: "./dist",
 
-  /** Where `gulp zip` writes its archive. Kept outside `build/` on purpose. */
+  /** Where `gulp zip` writes its archive. Kept outside `dist/` on purpose. */
   release: "./release",
 
   /** Glob patterns, resolved against the project root. */

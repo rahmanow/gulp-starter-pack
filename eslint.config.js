@@ -3,7 +3,7 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", "build/**", "release/**", "node_modules/**"],
+    ignores: [".tmp/**", "dist/**", "release/**", "node_modules/**"],
   },
 
   // Build tooling — runs in Node.

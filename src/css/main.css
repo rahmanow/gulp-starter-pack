@@ -2,7 +2,7 @@
  * Tailwind CSS 4 entry point.
  *
  * `source(none)` disables automatic content detection so the build never scans
- * node_modules/ or the generated dist/ and build/ folders. Sources are declared
+ * node_modules/ or the generated .tmp/ and dist/ folders. Sources are declared
  * explicitly below — add a line here if you introduce a new template folder.
  */
 @import "tailwindcss" source(none);

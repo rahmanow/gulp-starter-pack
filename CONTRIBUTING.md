@@ -54,8 +54,8 @@ your **Node version** (`node --version`) and the **exact command** you ran.
 - **Gulp tasks must return** their stream or a promise. A task that does not
   return one is treated as finished immediately, which silently reintroduces
   race conditions between tasks.
-- **Never write generated files back into `src/`.** Output goes to `dist/`
-  (development) or `build/` (production), both of which are gitignored.
+- **Never write generated files back into `src/`.** Output goes to `.tmp/`
+  (development) or `dist/` (production), both of which are gitignored.
 - **Styling is Tailwind-first.** Prefer utilities and `@theme` tokens in
   `src/css/main.css` over bespoke CSS.
 

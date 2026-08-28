@@ -19,7 +19,7 @@
 
 Not every site needs a framework. This is the build layer for the ones that
 don't: write plain HTML with reusable partials, style it with Tailwind, and get
-a minified, optimized `build/` folder you can drop on any host.
+a minified, optimized `dist/` folder you can drop on any host.
 
 - **HTML partials** — `@@include('./partials/header.html')`, no templating language to learn
 - **Tailwind CSS 4** — configured in CSS, no `tailwind.config.js`
@@ -52,11 +52,11 @@ rm -rf .git && git init
 
 | Command          | What it does                                                            |
 | ---------------- | ----------------------------------------------------------------------- |
-| `npm run dev`    | Build to `dist/`, serve on port 9050, watch and live-reload             |
-| `npm run build`  | Optimized production build into `build/`                                |
+| `npm run dev`    | Build to `.tmp/`, serve on port 9050, watch and live-reload             |
+| `npm run build`  | Optimized production build into `dist/`                                 |
 | `npm run zip`    | Build, then archive it to `release/gulp-starter-pack-<version>.zip`     |
 | `npm run deploy` | Build, then publish to [surge.sh](https://surge.sh) (needs configuring) |
-| `npm run clean`  | Delete `dist/`, `build/` and `release/`                                 |
+| `npm run clean`  | Delete `.tmp/`, `dist/` and `release/`                                  |
 | `npm run lint`   | ESLint over the build config and `src/js/`                              |
 | `npm run format` | Format everything with Prettier                                         |
 | `npm run check`  | Lint + format check + build — the same suite CI runs                    |
@@ -82,14 +82,15 @@ src/                    Everything you edit
 config.js               Paths, dev-server port, deploy target
 gulpfile.js             The pipeline itself
 
-dist/                   Development output (gitignored)
-build/                  Production output (gitignored)
+.tmp/                   Development output (gitignored, scratch)
+dist/                   Production output (gitignored)
 release/                Zipped builds (gitignored)
 ```
 
-`dist/` is the fast, unminified development build that Browsersync serves.
-`build/` is the optimized one you deploy. Both are regenerated from scratch, so
-never edit them directly.
+`.tmp/` is the fast, unminified development build that Browsersync serves. It is
+scratch space, which is why it is hidden — you never deploy it. `dist/` is the
+optimized build you ship. Both are regenerated from scratch, so never edit them
+directly.
 
 ## How it works
 
@@ -184,8 +185,8 @@ export default {
   port: 9050, // dev server port
   open: false, // open a browser on start
   src: "./src",
-  dist: "./dist", // development output
-  build: "./build", // production output
+  dev: "./.tmp", // development output (scratch)
+  dist: "./dist", // production output
   surgeDomain: "", // set to enable `npm run deploy`
   // ...paths and image options
 };
@@ -196,14 +197,14 @@ line in `src/css/main.css`, so Tailwind sees the classes you use there.
 
 ## Deploying
 
-`build/` is a static folder — host it anywhere.
+`dist/` is a static folder — host it anywhere.
 
 **GitHub Pages** is already wired up. Enable it under
 _Settings → Pages → Source: **GitHub Actions**_ and every push to `master`
 publishes automatically via [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
 **Netlify / Vercel / Cloudflare Pages** — build command `npm run build`, publish
-directory `build`.
+directory `dist`.
 
 **surge.sh** — set your domain in `config.js`, then `npm run deploy`:
 

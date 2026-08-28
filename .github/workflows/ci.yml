@@ -50,26 +50,26 @@ jobs:
 
           fail() { echo "::error::$1"; exit 1; }
 
-          [ -f build/index.html ]     || fail "build/index.html was not produced"
-          [ -f build/css/style.css ]  || fail "build/css/style.css was not produced"
-          [ -f build/js/main.js ]     || fail "build/js/main.js was not produced"
+          [ -f dist/index.html ]     || fail "dist/index.html was not produced"
+          [ -f dist/css/style.css ]  || fail "dist/css/style.css was not produced"
+          [ -f dist/js/main.js ]     || fail "dist/js/main.js was not produced"
 
           # A stylesheet that exists but is empty is the 1.x bug this guards against.
-          [ -s build/css/style.css ]  || fail "build/css/style.css is empty"
+          [ -s dist/css/style.css ]  || fail "dist/css/style.css is empty"
 
           # Every @@include must have been expanded.
-          if grep -q "@@include(" build/index.html; then
-            fail "unprocessed @@include directive left in build/index.html"
+          if grep -q "@@include(" dist/index.html; then
+            fail "unprocessed @@include directive left in dist/index.html"
           fi
 
           # Partials are fragments and must never be emitted as pages.
-          if [ -e build/partials ]; then
+          if [ -e dist/partials ]; then
             fail "partials leaked into the production build"
           fi
 
           # The output must be a complete HTML document.
-          grep -qi "<html"  build/index.html || fail "no <html> element in build/index.html"
-          grep -qi "</body>" build/index.html || fail "no </body> element in build/index.html"
+          grep -qi "<html"  dist/index.html || fail "no <html> element in dist/index.html"
+          grep -qi "</body>" dist/index.html || fail "no </body> element in dist/index.html"
 
           echo "Build output verified."
 

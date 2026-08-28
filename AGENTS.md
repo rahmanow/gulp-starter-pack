@@ -46,8 +46,8 @@ the request, not a broken build.
 | `src/partials/`    | `@@include` fragments. Never emitted as pages.                 |
 | `src/css/main.css` | Tailwind entry point, `@theme` tokens, component classes.      |
 | `src/js/`          | `main.js` + `libs/` are bundled; `vendor/` is copied verbatim. |
-| `dist/`            | Development output. Generated, gitignored.                     |
-| `build/`           | Production output. Generated, gitignored.                      |
+| `.tmp/`            | Development output. Generated, gitignored.                     |
+| `dist/`            | Production output. Generated, gitignored.                      |
 | `release/`         | Zipped builds. Generated, gitignored.                          |
 
 ## Invariants
@@ -55,9 +55,9 @@ the request, not a broken build.
 These encode bugs that were actually shipped in 1.x. Breaking one reintroduces
 a real defect, so treat them as hard rules.
 
-1. **Never write generated files into `src/`.** Output goes to `dist/` or
-   `build/`. Version 1.x piped compiled CSS back into `src/scss/`, and those
-   artifacts ended up committed.
+1. **Never write generated files into `src/`.** Output goes to `.tmp/`
+   (development) or `dist/` (production). Version 1.x piped compiled CSS back
+   into `src/scss/`, and those artifacts ended up committed.
 
 2. **Every Gulp task must return its stream or a promise.** A task that does not
    is treated as finished the moment it starts, so dependent tasks run against
@@ -65,9 +65,11 @@ a real defect, so treat them as hard rules.
    returned nothing, and the dev server started before the build had written
    anything.
 
-3. **Production must build from `src/`, never from `dist/`.** The 1.x
-   `prodStyles` read from `dist/css`, so `gulp prod` on a clean checkout
-   produced a site with no stylesheet at all.
+3. **Production must compile from `src/`, never from the development output.**
+   The 1.x production task read its CSS from the _development_ folder, so
+   `gulp prod` on a clean checkout produced a site with no stylesheet at all.
+   Note that 1.x used the names the other way round — `dist/` was development
+   and `build/` was production — so old issue reports read confusingly.
 
 4. **Pages and partials are different things.** Partials live in
    `src/partials/` and are excluded by `config.paths.html`. If you add a
@@ -109,7 +111,7 @@ This is v4, not v3. The differences bite:
 - **Development CSS is not minified; production CSS is.** Grepping for
   `text-transform:uppercase` will miss the dev build, which formats it as
   `text-transform: uppercase` with a space and leading indentation. Match
-  loosely, or check `build/` rather than `dist/`.
+  loosely, or check `dist/` rather than `.tmp/`.
 - **`npm audit` reports 3 high advisories** against `immutable`, via
   `browser-sync`. These are known, dev-server-only, and documented in
   [SECURITY.md](SECURITY.md). **Do not "fix" them with an `overrides` entry** —

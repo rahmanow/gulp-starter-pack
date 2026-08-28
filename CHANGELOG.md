@@ -10,12 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 A full modernization of the toolchain. This release contains breaking changes —
 see [Migrating from 1.x](#migrating-from-1x) below.
 
+> **A note on folder names.** 1.x used `dist/` for the _development_ build and
+> `build/` for production — the reverse of the usual meaning. 2.0 corrects this:
+> `dist/` is production, `.tmp/` is development. Entries below describing 1.x
+> bugs use the 1.x names.
+
 ### Fixed
 
 - **`gulp prod` produced an unusable site.** The production build emitted no CSS
-  at all, because `prodStyles` read from `dist/` — a folder that only exists
-  after running the _development_ task. Styles are now compiled from `src/` in
-  both modes, so a production build works on a clean checkout.
+  at all, because `prodStyles` read from `dist/` — which in 1.x was the
+  _development_ folder, and only exists after running the dev task. Styles are
+  now compiled from `src/` in both modes, so a production build works on a
+  clean checkout.
 - **Production HTML was not a valid document.** `prodHTML` copied pages without
   running them through `gulp-file-include`, so `build/index.html` shipped a
   literal `@@include('./header.html')` line and no `<html>`, `<head>` or
@@ -27,7 +33,8 @@ see [Migrating from 1.x](#migrating-from-1x) below.
   function that never returned its stream, so Gulp treated them as finished
   immediately and started the dev server before files were guaranteed written.
 - **The archive zipped the directory it was writing into.** `build.zip` was
-  created inside `build/`. Archives now go to `release/`, named by version.
+  created inside the very folder being archived. Archives now go to `release/`,
+  named by version.
 - **Compiled CSS was written back into `src/`**, and the generated files were
   committed to the repository.
 - Every task was declared as an implicit global (`preview = ...`), leaking into
@@ -72,6 +79,10 @@ see [Migrating from 1.x](#migrating-from-1x) below.
 
 ### Changed
 
+- **Output folders renamed to match convention.** `dist/` is now the
+  **production** build, and development output moved to `.tmp/`. 1.x had these
+  inverted, which is the opposite of what nearly every other tool means by
+  `dist`. The `build` key in `config.js` is gone — use `dev` and `dist`.
 - Gulp 4 → **Gulp 5**; Tailwind CSS 3 → **Tailwind CSS 4**; Browsersync 2 → 3.
 - The gulpfile and `config.js` are now ES modules.
 - Tailwind is configured in CSS (`@theme` in `src/css/main.css`) rather than in
@@ -92,6 +103,10 @@ see [Migrating from 1.x](#migrating-from-1x) below.
    token gives you `bg-brand-500`, `text-brand-500` and so on.
 5. If you used `gulp git` / `gulp push`, use `git` directly.
 6. Set `surgeDomain` in `config.js` if you deploy with `npm run deploy`.
+7. **Point your host at `dist/`.** It is now the production build and `build/`
+   no longer exists. If a host was configured to publish `build`, change it to
+   `dist`. Anything that read `dist/` expecting the _dev_ build should now read
+   `.tmp/`.
 
 ## [1.3.0] - 2022
 

@@ -7,7 +7,8 @@ Please read [AGENTS.md](AGENTS.md) before making changes. In short:
 
 - Run `npm run check` (lint + format + build) to verify any change.
 - Configuration belongs in `config.js`, not `gulpfile.js`.
-- Never write generated files into `src/`; output goes to `dist/` or `build/`.
+- Never write generated files into `src/`; output goes to `.tmp/` (dev) or
+  `dist/` (production).
 - Every Gulp task must return its stream or a promise.
 - This is Tailwind CSS **4** — configured in CSS via `@theme`, with no
   `tailwind.config.js`, no autoprefixer, no PurgeCSS and no Sass.
