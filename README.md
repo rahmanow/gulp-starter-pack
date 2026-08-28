@@ -204,8 +204,23 @@ line in `src/css/main.css`, so Tailwind sees the classes you use there.
 _Settings → Pages → Source: **GitHub Actions**_ and every push to `master`
 publishes automatically via [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
-**Netlify / Vercel / Cloudflare Pages** — build command `npm run build`, publish
-directory `dist`.
+**Netlify / Vercel** — build command `npm run build`, publish directory `dist`.
+
+**Cloudflare Workers** — add a `wrangler.jsonc` pointing at the build output,
+then run `npx wrangler deploy`:
+
+<!-- prettier-ignore -->
+```jsonc
+{
+  "name": "gulp-starter-pack",
+  "compatibility_date": "2026-08-28",
+  "assets": { "directory": "./dist" }
+}
+```
+
+A purely static site needs no Worker script — just the `assets` block.
+Cloudflare [recommends Workers over Pages for new projects](https://developers.cloudflare.com/workers/static-assets/);
+Pages still works, but new features are going to Workers.
 
 **surge.sh** — set your domain in `config.js`, then `npm run deploy`:
 

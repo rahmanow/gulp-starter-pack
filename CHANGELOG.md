@@ -5,6 +5,15 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Deployment docs now recommend **Cloudflare Workers** rather than Cloudflare
+  Pages, with a `wrangler.jsonc` example. Cloudflare's current guidance is to
+  use Workers for new projects; Pages still works but no longer receives new
+  features.
+
 ## [2.0.0] - 2026-08-28
 
 A full modernization of the toolchain. This release contains breaking changes —
