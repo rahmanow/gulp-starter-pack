@@ -1,236 +1,280 @@
 /**
-*   Gulp Starter Pack
-*   Author: Azat Rahmanov
-*   URL : blog.rahmanow.com
-*   Twitter : @Azadik
- *  Instagram: @Azadik
-**/
+ * Gulp Starter Pack — build pipeline
+ *
+ * Tasks:
+ *   gulp            Clean, build to .tmp/, serve with live reload
+ *   gulp build      Optimized production build into dist/
+ *   gulp clean      Remove all generated output
+ *   gulp zip        Archive the production build into release/
+ *   gulp surge      Deploy the production build to surge.sh
+ *
+ * Paths and options live in ./config.js — you rarely need to edit this file.
+ */
 
-/*
-  npm install   //To install all dev dependencies of package
-  gulp          //To start development and server for live preview
-  gulp prod     //To generate minified files for live server
-  gulp surge    //To deploy your static website to surge.sh
-  gulp git      // To add, commit and push to repository
-  gulp push     // pushes to GitHub
-*/
+import { rm, mkdir, readFile } from "node:fs/promises";
+import { Transform } from "node:stream";
+import { spawn } from "node:child_process";
+import path from "node:path";
 
-// Gulp
-const { src, dest, watch, series, parallel } = require('gulp');
-//const gulpIf = require('gulp-if');
-const del = require('del');                             //For Cleaning build/dist for fresh export
-const symbol = require('log-symbols');              //For Symbolic Console logs :) :P
-const log = require('fancy-log');
+import gulp from "gulp";
+import browserSync from "browser-sync";
+import postcss from "gulp-postcss";
+import tailwindcss from "@tailwindcss/postcss";
+import concat from "gulp-concat";
+import terser from "gulp-terser";
+import include from "gulp-file-include";
+import gulpZip from "gulp-zip";
+import sharp from "sharp";
 
-//CSS
-const sass = require('gulp-sass')(require('sass'));     //For Compiling SASS files
-const post = require('gulp-postcss');                //For Compiling tailwind utilities with tailwind config
-const clean = require('gulp-clean-css');             //To Minify CSS files
-const purge = require('gulp-purgecss');              // Remove Unused CSS from Styles
-const tailwind = require('tailwindcss');
+import config from "./config.js";
 
-// Image
-const imagemin = require('gulp-imagemin');              //To Optimize Images
-//Note : Webp still not supported in major browsers including firefox
-// const webp = require('gulp-webp'); //For converting images to WebP format
-// const replace = require('gulp-replace'); //For Replacing img formats to webp in html
+const { src, dest, watch, series, parallel } = gulp;
+const server = browserSync.create();
 
-// JavaScript
-const concat = require('gulp-concat');                  //For Concatinating js,scss, css files
-const uglify = require('gulp-terser');                  //To Minify JS files
-const babel = require('gulp-babel');
+/** True when building for production. Set by the `build` task. */
+let isProduction = false;
 
-// HTML
-const include = require('gulp-file-include');       // Include header and footer files to work faster :)
+/* -------------------------------------------------------------------------
+ * Helpers
+ * ---------------------------------------------------------------------- */
 
-// Server
-const sync = require('browser-sync');
-const exec = require('superchild');               // run terminal commands
-const zip = require('gulp-zip');                        // create a zip file
-const git = require('gulp-git');                        // Execute command line shell for git push
-const open = require('gulp-open');                      // Opens a URL in a web browser
+const log = (message) => console.log(`\x1b[36m[starter]\x1b[0m ${message}`);
 
+/** Output directory for the current mode. */
+const outDir = () => (isProduction ? config.dist : config.dev);
 
-// Other
-const opt = require("./config");
-const {exit} = require("browser-sync");
-//const {openBrowser} = require("browser-sync/dist/utils");
-//const {reload} = require("browser-sync");
-//const {openBrowser} = require("browser-sync/dist/utils");                    //paths and other options from config.js
+/**
+ * Re-encode raster images with sharp.
+ *
+ * Runs only on production builds; development copies files untouched so the
+ * watch loop stays fast. Anything sharp cannot handle (SVG, fonts, video)
+ * passes through unchanged rather than failing the build.
+ */
+const optimizeImages = () => {
+  const { extensions, quality } = config.imageOptimization;
 
-//Load Previews on Browser on dev
-preview = (done) => {
-    sync.init({
-        server: {
-            baseDir: opt.dist
-        },
-        port: opt.port || 5000
-    });
-      watch(opt.tailwind, devStyles);
-      watch(opt.scss, devStyles);
+  return new Transform({
+    objectMode: true,
+    async transform(file, _encoding, callback) {
+      if (!file.isBuffer() || !extensions.includes(file.extname.toLowerCase())) {
+        callback(null, file);
+        return;
+      }
+
+      try {
+        const before = file.contents.length;
+        const optimized = await sharp(file.contents)
+          .rotate()
+          .toFormat(file.extname.toLowerCase() === ".png" ? "png" : "jpeg", {
+            quality,
+            mozjpeg: true,
+          })
+          .toBuffer();
+
+        // Never let "optimization" make a file bigger.
+        if (optimized.length < before) {
+          const saved = Math.round((1 - optimized.length / before) * 100);
+          log(`${file.relative}: -${saved}%`);
+          file.contents = optimized;
+        }
+
+        callback(null, file);
+      } catch (error) {
+        log(`skipped ${file.relative} (${error.message})`);
+        callback(null, file);
+      }
+    },
+  });
+};
+
+/* -------------------------------------------------------------------------
+ * Build tasks
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Compile pages, expanding `@@include(...)` directives.
+ * Partials are excluded by the glob in config, so they never reach the output.
+ */
+export const html = () =>
+  src(config.paths.html, { base: config.src })
+    .pipe(include({ prefix: "@@", basepath: "@file" }))
+    .pipe(dest(outDir()));
+
+/**
+ * Compile Tailwind. Minified in production only.
+ *
+ * Note this always reads from `src/` — never from a previous build — so
+ * `gulp build` works correctly on a clean checkout.
+ */
+export const styles = () => {
+  // Tailwind bundles Lightning CSS, so `optimize` minifies without pulling in a
+  // separate minifier. cssnano would work too, but it requires Node 22.22.3+
+  // and adds ~30 packages for a ~3% smaller file.
+  const plugins = [tailwindcss(isProduction ? { optimize: true } : {})];
+
+  return src(config.paths.css)
+    .pipe(postcss(plugins))
+    .pipe(concat("style.css"))
+    .pipe(dest(`${outDir()}/css`))
+    .pipe(server.stream());
+};
+
+/** Bundle `libs/` then your own scripts into a single `main.js`. */
+export const scripts = () =>
+  src([config.paths.jsLibs, config.paths.js], { allowEmpty: true })
+    .pipe(concat("main.js"))
+    .pipe(terser({ format: { comments: false } }))
+    .pipe(dest(`${outDir()}/js`));
+
+/** Copy vendor scripts verbatim. */
+export const vendorScripts = () =>
+  src(config.paths.jsVendor, { base: `${config.src}/js`, allowEmpty: true, encoding: false }).pipe(
+    dest(`${outDir()}/js`),
+  );
+
+/** Copy images, optimizing them on production builds. */
+export const images = () => {
+  const stream = src(config.paths.img, { encoding: false });
+  return (isProduction ? stream.pipe(optimizeImages()) : stream).pipe(dest(`${outDir()}/img`));
+};
+
+/* -------------------------------------------------------------------------
+ * Housekeeping
+ * ---------------------------------------------------------------------- */
+
+export const clean = async () => {
+  await Promise.all(
+    [config.dev, config.dist, config.release].map((dir) =>
+      rm(dir, { recursive: true, force: true }),
+    ),
+  );
+  log(`removed ${config.dev}/, ${config.dist}/ and ${config.release}/`);
+};
+
+const cleanDev = () => rm(config.dev, { recursive: true, force: true });
+const cleanDist = () => rm(config.dist, { recursive: true, force: true });
+
+const setProduction = async () => {
+  isProduction = true;
+};
+
+/* -------------------------------------------------------------------------
+ * Dev server
+ * ---------------------------------------------------------------------- */
+
+const serve = (done) => {
+  server.init(
+    {
+      server: { baseDir: config.dev },
+      port: config.port,
+      open: config.open,
+      notify: false,
+      ui: false,
+    },
+    () => {
+      // Browsersync falls back to the next free port if config.port is taken,
+      // so report the port it actually bound rather than the requested one.
+      log(`serving ${config.dev} on http://localhost:${server.getOption("port")}`);
       done();
-  }
+    },
+  );
+};
 
-// Triggers Browser reload
-previewReload = (done) => {
-    log("\n\t" + symbol.info,"Reloading Browser Preview.\n");
-    sync.reload();
-    done();
-  }
-
-//Development Tasks
-devHTML = async () => {
-    src([opt.html,
-        '!' + opt.src + '/header.html', // ignore
-        '!' + opt.src + '/footer.html' // ignore
-        ])
-    .pipe(include({ prefix: '@@', basepath: '@file'}))
-    .pipe(dest(opt.dist));
-  }
-
-devStyles = async () => {
-    src([opt.scss, opt.tailwind])
-    .pipe(sass().on('error', sass.logError))
-    .pipe(dest(opt.src + '/scss'))
-    .pipe(post([
-        tailwind(opt.tailConfig),
-        require('autoprefixer'),
-    ]))
-    .pipe(concat({ path: 'style.css'}))
-    .pipe(dest(opt.dist + '/css'))
-    .pipe(sync.stream())
-  }
-
-devScripts = async () => {
-    src([
-        opt.jsLibs,
-        opt.js,
-        '!' + opt.src + '/js/external/*'
-    ])
-    .pipe(babel({ignore: [opt.jsLibs] }))
-    .pipe(concat({ path: 'main.js'}))
-    .pipe(uglify())
-    .pipe(dest(opt.dist + '/js'));
-  }
-
-devImages = async () => {
-    src(opt.img)
-    .pipe(dest(opt.dist + '/img'));
-}
-
-watchFiles = () => {
-  watch(opt.html, series(devHTML, previewReload));
-  watch(opt.js, series(devScripts, previewReload));
-  watch(opt.img, series(devImages, previewReload));
-  log("\n\t" + symbol.info,"Watching for Changes..\n");
-}
-
-devClean = () => {
-  log("\n\t" + symbol.info,"Cleaning dist folder for fresh start.\n");
-  return del([opt.dist]);
-}
-
-//Production Tasks (Optimized Build for Live/Production Sites)
-prodHTML = () => {
-  return src(opt.html)
-  .pipe(dest(opt.build));
-}
-
-prodStyles = () => {
-  return src(opt.dist + '/css/**/*')
-  .pipe(purge(
-      {
-        content: ['src/**/*.{html,js}'],
-        defaultExtractor: content => {
-          const broadMatches = content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || []
-          const innerMatches = content.match(/[^<>"'`\s.()]*[^<>"'`\s.():]/g) || []
-          return broadMatches.concat(innerMatches)
-        }
-      }))
-  .pipe(clean({compatibility: 'ie8'}))
-  .pipe(dest(opt.build + '/css'));
-}
-
-prodScripts = () => {
-  return src([
-    opt.jsLibs,
-    opt.js
-  ])
-  .pipe(concat({ path: 'scripts.js'}))
-  .pipe(uglify())
-  .pipe(dest(opt.build + '/js'));
-}
-
-prodImages = () => {
-  return src(opt.img)
-  .pipe(imagemin())
-  .pipe(dest(opt.build + '/img'));
-}
-
-prodClean = () => {
-  log("\n\t" + symbol.info,"Cleaning build folder for fresh start.\n");
-  return del([opt.build]);
-}
-
-buildFinish = (done) => {
-    log("\n\t" + symbol.info,`Production build is complete. Files are located at ${opt.build}\n`);
-    return src(opt.build + '/*')
-        .pipe(zip('build.zip'))
-        .pipe(dest(opt.build));
+const reload = (done) => {
+  server.reload();
   done();
-}
+};
 
-gitter = async () => {
-    const child = exec(`rm -rf .git/index.lock`)
-    child.on('stdout_line', (line) => { log (line + ' index lock removed')});
+const watchFiles = (done) => {
+  watch(config.paths.htmlWatch, series(html, reload));
+  watch(`${config.src}/css/**/*.css`, styles);
+  watch([config.paths.jsLibs, config.paths.js], series(scripts, reload));
+  watch(config.paths.jsVendor, series(vendorScripts, reload));
+  watch(config.paths.img, series(images, reload));
 
-    return src(opt.root)
-        .pipe(git.add())
-        .on('end', () => { log('git add Done!'); })
-        .pipe(git.commit(opt.git.m, {args: opt.git.args}))
-        .on('end', () => { log('git commit Done!'); })
-}
+  // Tailwind scans your markup for class names, so a template edit must also
+  // rebuild the stylesheet — not just reload the page.
+  watch([config.paths.htmlWatch, `${config.src}/js/**/*.js`], styles);
 
-push = async () => {
-    git.push(opt.git.url, opt.git.branch, errorFunction);
-    log('git push done!');
-}
+  log("watching for changes");
+  done();
+};
 
-surgeDeploy = async () => {
-    const child = exec(`surge ${opt.dist} ${opt.surgeUrl}`);
-    child.on('stdout_line', (line) => {
-        log( line);
-        if(line.includes('Success!')) {
-            openBrowser();
-            log('\n\n\t' + symbol.success + ' Deployed to surge \n\n\t');
-        }
+/* -------------------------------------------------------------------------
+ * Release helpers
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Archive the production build.
+ *
+ * Writes to `release/` rather than into `dist/` itself, which would otherwise
+ * mean zipping a directory while adding a file to it.
+ */
+export const archive = async () => {
+  const pkg = JSON.parse(await readFile(new URL("./package.json", import.meta.url), "utf8"));
+  const filename = `${pkg.name}-${pkg.version}.zip`;
+
+  await mkdir(config.release, { recursive: true });
+
+  return new Promise((resolve, reject) => {
+    src(`${config.dist}/**/*`, { base: config.dist, encoding: false, allowEmpty: true })
+      .pipe(gulpZip(filename))
+      .pipe(dest(config.release))
+      .on("end", () => {
+        log(`wrote ${path.join(config.release, filename)}`);
+        resolve();
+      })
+      .on("error", reject);
+  });
+};
+
+/** Deploy `dist/` to surge.sh. Requires `surgeDomain` in config.js. */
+const deployToSurge = async () => {
+  if (!config.surgeDomain) {
+    throw new Error(
+      "No deploy target configured. Set `surgeDomain` in config.js " +
+        "(for example: 'my-site.surge.sh'), then run `npm run deploy` again.",
+    );
+  }
+
+  log(`deploying ${config.dist} to ${config.surgeDomain}`);
+
+  await new Promise((resolve, reject) => {
+    const child = spawn("npx", ["--yes", "surge", config.dist, config.surgeDomain], {
+      stdio: "inherit",
+      shell: process.platform === "win32",
     });
-}
+    child.on("error", reject);
+    child.on("close", (code) =>
+      code === 0 ? resolve() : reject(new Error(`surge exited with code ${code}`)),
+    );
+  });
 
-openBrowser = async () => {
-    const site = {uri: 'https://' + opt.surgeUrl};
-    return src(opt.dist)
-        .pipe(open(site))
-}
+  log(`deployed to https://${config.surgeDomain}`);
+};
 
-errorFunction = (err) => { if (err) throw err; }
+/* -------------------------------------------------------------------------
+ * Public tasks
+ * ---------------------------------------------------------------------- */
 
-exports.surge = series(surgeDeploy);
-exports.git = series(gitter);
-exports.push = series(push);
-
-
-// Default gulp command - gulp
-exports.default = series(
-  devClean, // Clean Dist Folder
-  parallel(devStyles, devScripts, devImages, devHTML), //Run All tasks in parallel
-  preview, // Live Preview Build
-  watchFiles // Watch for Live Changes
+/** Production build: clean, compile everything optimized, into dist/. */
+export const build = series(
+  setProduction,
+  cleanDist,
+  parallel(styles, scripts, vendorScripts, images, html),
+  async () => log(`production build ready in ${config.dist}`),
 );
 
-// Production command - gulp prod
-exports.prod = series(
-  prodClean, // Clean Build Folder
-  parallel(prodStyles, prodScripts, prodImages, prodHTML), //Run All tasks in parallel
-  buildFinish
+/** `gulp zip` — build, then archive the result. */
+export const zip = series(build, archive);
+
+/** `gulp surge` — build, then deploy. Always ships a fresh build. */
+export const surge = series(build, deployToSurge);
+
+/** Default: development build + server + watchers. */
+export default series(
+  cleanDev,
+  parallel(styles, scripts, vendorScripts, images, html),
+  serve,
+  watchFiles,
 );

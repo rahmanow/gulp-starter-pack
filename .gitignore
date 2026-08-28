@@ -1,3 +1,37 @@
-node_modules
-dist
-build
+# Dependencies
+node_modules/
+
+# Build output
+.tmp/
+dist/
+release/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Caches
+.cache/
+.parcel-cache/
+.npm/
+.eslintcache
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
