@@ -1,0 +1,124 @@
+/*
+ * Tailwind CSS 4 entry point.
+ *
+ * `source(none)` disables automatic content detection so the build never scans
+ * node_modules/ or the generated dist/ and build/ folders. Sources are declared
+ * explicitly below — add a line here if you introduce a new template folder.
+ */
+@import "tailwindcss" source(none);
+
+@source "../*.html";
+@source "../partials/**/*.html";
+@source "../js/**/*.js";
+
+/* ---------------------------------------------------------------------------
+ * Design tokens
+ *
+ * Everything in @theme becomes both a CSS variable and a Tailwind utility.
+ * `--color-brand-500` gives you `bg-brand-500`, `text-brand-500`, and so on.
+ * ------------------------------------------------------------------------ */
+@theme {
+  --color-brand-50: oklch(0.97 0.02 155);
+  --color-brand-100: oklch(0.94 0.05 155);
+  --color-brand-300: oklch(0.83 0.13 155);
+  --color-brand-500: oklch(0.68 0.16 155);
+  --color-brand-600: oklch(0.59 0.15 155);
+  --color-brand-700: oklch(0.49 0.13 155);
+  --color-brand-900: oklch(0.32 0.08 155);
+
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Base layer — element defaults
+ * ------------------------------------------------------------------------ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white font-display text-slate-700 antialiased;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-slate-950 text-slate-300;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Component layer — reusable classes built from utilities
+ * ------------------------------------------------------------------------ */
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-3xl px-6;
+  }
+
+  .hero {
+    @apply bg-gradient-to-br from-brand-600 to-brand-900 px-6 py-20 text-center;
+  }
+
+  .hero-heading {
+    @apply text-4xl font-semibold tracking-tight text-white sm:text-5xl;
+  }
+
+  .hero-tagline {
+    @apply mx-auto mt-4 max-w-xl text-lg text-brand-100;
+  }
+
+  .badge-row {
+    @apply mt-8 flex flex-wrap items-center justify-center gap-2;
+  }
+
+  .badge {
+    @apply rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-white;
+  }
+
+  .section {
+    @apply border-b border-slate-200 py-12 last:border-b-0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .section {
+      @apply border-slate-800;
+    }
+  }
+
+  .section-title {
+    @apply mb-2 text-xl font-semibold text-slate-900;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .section-title {
+      @apply text-white;
+    }
+  }
+
+  .code-block {
+    @apply mt-4 block overflow-x-auto rounded-card border border-slate-200 bg-slate-50 px-5 py-4 font-mono text-sm leading-relaxed text-slate-700;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .code-block {
+      @apply border-slate-800 bg-slate-900 text-slate-300;
+    }
+  }
+
+  .code-block em {
+    @apply text-slate-400 not-italic;
+  }
+
+  .link {
+    @apply font-medium text-brand-600 underline-offset-4 hover:underline;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .link {
+      @apply text-brand-300;
+    }
+  }
+}

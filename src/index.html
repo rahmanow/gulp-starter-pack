@@ -1,63 +1,91 @@
-@@include('./header.html')
+@@include('./partials/header.html')
 
-    <header class="">
-        <h1 class="hero-heading">Gulp with TailwindCSS Kit</h1>
-    </header>
+<header class="hero">
+  <h1 class="hero-heading">Gulp Starter Pack</h1>
+  <p class="hero-tagline">
+    A no-framework static site pipeline: HTML partials, Tailwind CSS 4, live reload and an optimized
+    production build.
+  </p>
+  <div class="badge-row">
+    <span class="badge">Gulp 5</span>
+    <span class="badge">Tailwind CSS 4</span>
+    <span class="badge">PostCSS</span>
+    <span class="badge">Browsersync</span>
+  </div>
+</header>
 
-    <div class="mx-auto py-20 max-w-2xl">
-        <img class="shadow transition-shadow duration-500 rounded hover:shadow-lg mb-10" src="img/cover.jpg" alt="Gulp with TailwindCSS">
-        <div class="instructions">
-            <div class="mb-20 text-gray-700">
-                <h4 class="sub-title">Usage</h4>
-                <p>Use the following commands to get started.</p>
-                <code class="code transform translate-x-[20px]">
-                    <em>// To Install Dev Depedencies</em><br/>
-                    npm install<br/><br/>
+<main class="container-page">
+  <section class="section">
+    <img
+      class="rounded-card shadow transition-shadow duration-500 hover:shadow-lg"
+      src="img/cover.jpg"
+      alt="Gulp Starter Pack cover"
+      width="1280"
+      height="640"
+      loading="lazy"
+    />
+  </section>
 
-                    <em>// To start development and server for live preview</em><br/>
-                    npm run dev<br/><br/>
+  <section class="section">
+    <h2 class="section-title">Getting started</h2>
+    <p>Install once, then run the dev server. It opens on port 9050 and reloads on save.</p>
+    <code class="code-block">
+      <em># Install dependencies</em><br />
+      npm install<br /><br />
 
-                    <em>// To generate minifed,optamized files for production server</em><br/>
-                    npm run prod
-                </code>
-            </div>
+      <em># Start the dev server with live reload</em><br />
+      npm run dev<br /><br />
 
-            <div class="mb-10 text-gray-600">
-                    <h4 class="sub-title">Options</h4>
-                    <p>To change the path of files and destination/build folder configure at <b class="font-bold">config.js</b> file</p>
-                    <!-- Ignore the messay code :P only for demo -->
-                <code class="code pre transform translate-x-[-20px]">config: {
-                    ...
-                    port: 9050 <em>//Update port here</em>
-                },
-                paths: {
-                    root: "./",
-                    src: {
-                        base: "./src",
-                        css: "./src/css",
-                        js: "./src/js",
-                        img: "./src/img"
-                    },
-                    dist: {
-                        base: "./dist",
-                        css: "./dist/css",
-                        js: "./dist/js",
-                        img: "./dist/img"
-                    },
-                    build: {
-                        base: "./build",
-                        css: "./build/css",
-                        js: "./build/js",
-                        img: "./build/img"
-                    }
-                }
-                </code>
-            </div>
+      <em># Produce an optimized production build</em><br />
+      npm run build
+    </code>
+  </section>
 
-        </div>
+  <section class="section">
+    <h2 class="section-title">Project layout</h2>
+    <p>
+      Everything you edit lives in <b class="font-semibold">src/</b>. Dev output goes to
+      <b class="font-semibold">dist/</b>, production output to <b class="font-semibold">build/</b>.
+    </p>
+    <code class="code-block">
+      src/<br />
+      &nbsp;&nbsp;index.html <em># pages (compiled with partials)</em><br />
+      &nbsp;&nbsp;partials/ <em># include fragments, never emitted</em><br />
+      &nbsp;&nbsp;css/main.css <em># Tailwind entry point + design tokens</em><br />
+      &nbsp;&nbsp;js/main.js <em># bundled into js/main.js</em><br />
+      &nbsp;&nbsp;js/libs/ <em># bundled first, before your own code</em><br />
+      &nbsp;&nbsp;js/vendor/ <em># copied as-is, never bundled</em><br />
+      &nbsp;&nbsp;img/ <em># optimized on production builds</em>
+    </code>
+  </section>
 
-        <div class="social">
+  <section class="section">
+    <h2 class="section-title">Configuration</h2>
+    <p>
+      Paths, the dev-server port and the deploy target all live in
+      <b class="font-semibold">config.js</b> at the project root.
+    </p>
+    <code class="code-block">
+      export default {<br />
+      &nbsp;&nbsp;port: 9050, <em># dev server port</em><br />
+      &nbsp;&nbsp;src: "./src",<br />
+      &nbsp;&nbsp;dist: "./dist", <em># development output</em><br />
+      &nbsp;&nbsp;build: "./build", <em># production output</em><br />
+      &nbsp;&nbsp;surgeDomain: "" <em># set to deploy with `npm run deploy`</em><br />
+      };
+    </code>
+  </section>
 
-        </div>
-    </div>
-@@include('./footer.html')
+  <section class="section">
+    <h2 class="section-title">Customizing the design</h2>
+    <p>
+      Tailwind 4 is configured in CSS, not JavaScript. Add design tokens to the
+      <code class="font-mono text-sm">@theme</code> block in
+      <b class="font-semibold">src/css/main.css</b> and they become utilities automatically —
+      <code class="font-mono text-sm">--color-brand-500</code> gives you
+      <code class="font-mono text-sm">bg-brand-500</code>.
+    </p>
+  </section>
+</main>
+
+@@include('./partials/footer.html')
