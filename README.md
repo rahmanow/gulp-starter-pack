@@ -10,7 +10,7 @@
     <img alt="CI" src="https://github.com/rahmanow/gulp-starter-pack/actions/workflows/ci.yml/badge.svg">
   </a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Node" src="https://img.shields.io/badge/node-%3E%3D20.19-brightgreen">
+  <img alt="Node" src="https://img.shields.io/badge/node-20.19%20%7C%2022.13%20%7C%2024-brightgreen">
   <img alt="Gulp" src="https://img.shields.io/badge/gulp-5-cf4647">
   <img alt="Tailwind CSS" src="https://img.shields.io/badge/tailwindcss-4-38bdf8">
 </p>
@@ -39,7 +39,8 @@ npm run dev
 Then open <http://localhost:9050>. Edit anything in `src/` and the browser
 updates itself.
 
-> **Requires Node.js 20.19+.** Run `nvm use` to pick up the version in `.nvmrc`.
+> **Requires Node.js 20.19+, 22.13+ or 24+.** Run `nvm use` to pick up the
+> version in `.nvmrc`.
 
 Using this as a template? Click **Use this template** on GitHub, or delete the
 git history and start fresh:

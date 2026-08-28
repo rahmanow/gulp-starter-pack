@@ -12,8 +12,8 @@ npm install
 npm run dev
 ```
 
-You need **Node.js 20.19 or newer** (see `.nvmrc` — `nvm use` picks the right
-version automatically).
+You need **Node.js 20.19+, 22.13+ or 24+** (see `.nvmrc` — `nvm use` picks the
+right version automatically). CI runs the full suite on 20, 22 and 24.
 
 ## Before you open a pull request
 

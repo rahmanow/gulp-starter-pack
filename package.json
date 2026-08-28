@@ -1,7 +1,7 @@
 {
   "name": "gulp-starter-pack",
   "version": "2.0.0",
-  "description": "A modern static-site starter kit built on Gulp 5, Tailwind CSS 4, PostCSS and Browsersync — with HTML partials, live reload and an optimized production build.",
+  "description": "A modern static-site starter kit built on Gulp 5, Tailwind CSS 4, PostCSS and Browsersync \u2014 with HTML partials, live reload and an optimized production build.",
   "type": "module",
   "main": "gulpfile.js",
   "scripts": {
@@ -43,13 +43,12 @@
   "author": "Azat Rahmanov",
   "license": "MIT",
   "engines": {
-    "node": ">=20.19.0"
+    "node": "^20.19.0 || ^22.13.0 || >=24"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.3.3",
     "browser-sync": "^3.0.4",
-    "cssnano": "^9.0.0",
     "eslint": "^10.9.1",
     "globals": "^17.11.0",
     "gulp": "^5.0.1",

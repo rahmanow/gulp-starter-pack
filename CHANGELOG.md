@@ -87,6 +87,8 @@ see [Migrating from 1.x](#migrating-from-1x) below.
 - The gulpfile and `config.js` are now ES modules.
 - Tailwind is configured in CSS (`@theme` in `src/css/main.css`) rather than in
   `tailwind.config.js`.
+- CSS is minified by Tailwind's bundled Lightning CSS via its `optimize`
+  option, so the build needs no separate minifier dependency.
 - Images are optimized only in production, keeping the watch loop fast.
 - The dev server reports the port it actually bound, which matters when the
   configured port is already taken.

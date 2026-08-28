@@ -17,7 +17,7 @@ ships to a browser except what the build emits.
 ## Setup and verification
 
 ```sh
-npm install       # Node 20.19+ required
+npm install       # Node 20.19+, 22.13+ or 24+
 npm run check     # lint + format check + production build — run this before finishing
 ```
 

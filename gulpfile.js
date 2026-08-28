@@ -20,7 +20,6 @@ import gulp from "gulp";
 import browserSync from "browser-sync";
 import postcss from "gulp-postcss";
 import tailwindcss from "@tailwindcss/postcss";
-import cssnano from "cssnano";
 import concat from "gulp-concat";
 import terser from "gulp-terser";
 import include from "gulp-file-include";
@@ -102,16 +101,16 @@ export const html = () =>
     .pipe(dest(outDir()));
 
 /**
- * Compile Tailwind. Minified with cssnano in production only.
+ * Compile Tailwind. Minified in production only.
  *
  * Note this always reads from `src/` — never from a previous build — so
  * `gulp build` works correctly on a clean checkout.
  */
 export const styles = () => {
-  const plugins = [tailwindcss()];
-  if (isProduction) {
-    plugins.push(cssnano({ preset: "default" }));
-  }
+  // Tailwind bundles Lightning CSS, so `optimize` minifies without pulling in a
+  // separate minifier. cssnano would work too, but it requires Node 22.22.3+
+  // and adds ~30 packages for a ~3% smaller file.
+  const plugins = [tailwindcss(isProduction ? { optimize: true } : {})];
 
   return src(config.paths.css)
     .pipe(postcss(plugins))
